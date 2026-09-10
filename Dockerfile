@@ -19,7 +19,12 @@ RUN pip install --no-cache-dir xformers==0.0.22.post7
 ENV DS_BUILD_OPS=0
 
 # Зависимости самого проекта (файл requirements.txt уже лежит в склонированном репозитории)
-RUN pip install --no-cache-dir -r requirements.txt
+# nvdiffrast ставим отдельно ниже с флагом --no-build-isolation — иначе он
+# не видит уже установленный torch и падает с ошибкой при сборке.
+RUN grep -v "nvdiffrast" requirements.txt > requirements_no_nvdiffrast.txt && \
+    pip install --no-cache-dir -r requirements_no_nvdiffrast.txt
+
+RUN pip install --no-cache-dir --no-build-isolation git+https://github.com/NVlabs/nvdiffrast/
 
 # runpod — SDK для serverless-воркера, trimesh — для конвертации .obj -> .glb под Unity
 RUN pip install --no-cache-dir runpod requests trimesh
