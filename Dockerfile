@@ -42,6 +42,7 @@ RUN pip install \
         huggingface-hub \
         xatlas \
         onnxruntime \
+    && pip install scikit-build-core pybind11 cmake \
     && pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git
 
 # --- Наши доп. зависимости под RunPod --------------------------------------
