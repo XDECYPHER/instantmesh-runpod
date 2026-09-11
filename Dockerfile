@@ -43,7 +43,7 @@ RUN pip install \
         xatlas \
         onnxruntime \
     && pip install scikit-build-core pybind11 cmake
-
+RUN pip install "numpy<2"
 # --- torchmcubes: клонируем вручную и патчим конфликт lerp() перед сборкой ---
 RUN git clone --depth 1 https://github.com/tatsy/torchmcubes.git /tmp/torchmcubes \
     && sed -i '/inline __device__ __host__ float lerp(float a, float b, float t)/,+2d' /tmp/torchmcubes/cxx/helper_math.h \
