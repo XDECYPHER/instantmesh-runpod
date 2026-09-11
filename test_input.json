@@ -1,0 +1,9 @@
+{
+    "input": {
+        "image_url": "https://raw.githubusercontent.com/VAST-AI-Research/TripoSR/main/examples/chair.png",
+        "remove_background": true,
+        "foreground_ratio": 0.85,
+        "mc_resolution": 256,
+        "output_format": "glb"
+    }
+}
