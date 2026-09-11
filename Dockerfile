@@ -42,7 +42,7 @@ RUN pip install \
         huggingface-hub \
         xatlas \
         onnxruntime \
-    && pip install git+https://github.com/tatsy/torchmcubes.git
+    && pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git
 
 # --- Наши доп. зависимости под RunPod --------------------------------------
 RUN pip install runpod requests
