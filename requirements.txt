@@ -11,6 +11,6 @@ huggingface-hub
 xatlas
 onnxruntime
 requests
-numpy
+numpy<2
 # torchmcubes ставится отдельно, т.к. это git-пакет с CUDA-сборкой:
 # pip install git+https://github.com/tatsy/torchmcubes.git
