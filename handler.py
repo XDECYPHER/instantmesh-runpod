@@ -138,7 +138,7 @@ def handler(event):
             result = _upload_or_encode(out_path)
 
         result["format"] = output_format
-        return {"output": result}
+        return result
 
     except Exception as e:
         return {
