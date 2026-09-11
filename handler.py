@@ -128,7 +128,7 @@ def handler(event):
 
         with torch.no_grad():
             scene_codes = model([image], device=DEVICE)
-            meshes = model.extract_mesh(scene_codes, resolution=mc_resolution)
+            meshes = model.extract_mesh(scene_codes, resolution=mc_resolution, has_vertex_color=False)
 
         mesh = meshes[0]
 
