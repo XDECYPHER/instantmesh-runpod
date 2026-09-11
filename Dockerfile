@@ -42,8 +42,13 @@ RUN pip install \
         huggingface-hub \
         xatlas \
         onnxruntime \
-    && pip install scikit-build-core pybind11 cmake \
-    && pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git
+    && pip install scikit-build-core pybind11 cmake
+
+# --- torchmcubes: клонируем вручную и патчим конфликт lerp() перед сборкой ---
+RUN git clone --depth 1 https://github.com/tatsy/torchmcubes.git /tmp/torchmcubes \
+    && sed -i '/inline __device__ __host__ float lerp(float a, float b, float t)/,+2d' /tmp/torchmcubes/cxx/helper_math.h \
+    && pip install --no-build-isolation /tmp/torchmcubes \
+    && rm -rf /tmp/torchmcubes
 
 # --- Наши доп. зависимости под RunPod --------------------------------------
 RUN pip install runpod requests
