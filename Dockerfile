@@ -1,7 +1,7 @@
 # =========================================================================
-# TripoSR RunPod Serverless Worker
-# Базовый образ — CUDA "devel" (не "runtime"!), т.к. torchmcubes собирается
-# из исходников и требует nvcc на этапе pip install.
+# Stable Fast 3D (SF3D) RunPod Serverless Worker
+# Базовый образ — CUDA "devel", т.к. texture_baker и uv_unwrapper —
+# CUDA-расширения, которые компилируются из исходников при pip install.
 # =========================================================================
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
 
@@ -20,44 +20,38 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /workspace
 
-# --- PyTorch (под CUDA 12.1) ----------------------------------------------
-RUN pip install --upgrade pip setuptools wheel && \
+# --- PyTorch (под CUDA 12.1, та же связка, что уже проверена у нас) ------
+RUN pip install --upgrade pip && \
+    pip install -U setuptools==69.5.1 wheel && \
     pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu121
 
-# --- Клонируем официальный репозиторий TripoSR ----------------------------
-RUN git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git /workspace/TripoSR
+# --- Клонируем официальный репозиторий Stable Fast 3D ---------------------
+RUN git clone --depth 1 https://github.com/Stability-AI/stable-fast-3d.git /workspace/stable-fast-3d
 
-WORKDIR /workspace/TripoSR
+WORKDIR /workspace/stable-fast-3d
 
-# --- Python-зависимости самого TripoSR ------------------------------------
-# torchmcubes ставится отдельно (собирается с CUDA-поддержкой из исходников,
-# поэтому нужен образ "devel", а не "runtime")
-RUN pip install \
-        omegaconf==2.3.0 \
-        Pillow==10.1.0 \
-        einops==0.7.0 \
-        transformers==4.35.0 \
-        trimesh==4.0.5 \
-        rembg \
-        huggingface-hub \
-        xatlas \
-        onnxruntime \
-    && pip install scikit-build-core pybind11 cmake
-RUN pip install "numpy<2"
-# --- torchmcubes: клонируем вручную и патчим конфликт lerp() перед сборкой ---
-RUN git clone --depth 1 https://github.com/tatsy/torchmcubes.git /tmp/torchmcubes \
-    && sed -i '/inline __device__ __host__ float lerp(float a, float b, float t)/,+2d' /tmp/torchmcubes/cxx/helper_math.h \
-    && pip install --no-build-isolation /tmp/torchmcubes \
-    && rm -rf /tmp/torchmcubes
+# --- Фикс известного бага: gpytoolbox==0.2.0 не имеет готовых wheel ------
+RUN sed -i 's/gpytoolbox==0.2.0/gpytoolbox==0.3.3/' requirements.txt
+
+# --- Ставим основные python-зависимости (без локальных CUDA-пакетов) ----
+RUN grep -v -E '^\./' requirements.txt > requirements_main.txt \
+    && pip install -r requirements_main.txt
+
+# --- texture_baker и uv_unwrapper: CUDA-расширения, собираем ПОСЛЕ torch,
+# --- обязательно с --no-build-isolation (иначе pip не видит torch) -------
+RUN pip install --no-build-isolation ./texture_baker/ ./uv_unwrapper/
 
 # --- Наши доп. зависимости под RunPod --------------------------------------
 RUN pip install runpod requests
 
-# --- Качаем веса модели ЗАРАНЕЕ (на этапе билда), чтобы не тянуть их       -
-# --- при каждом cold start                                                -
+# --- Качаем веса модели ЗАРАНЕЕ (на этапе билда) ---------------------------
+# Модель ЗАКРЫТА (gated) на HF — нужен токен с ранее данным доступом.
+# Передаём его как build-arg (см. GitHub Actions workflow ниже),
+# но НЕ оставляем в финальных слоях образа как секрет.
+ARG HF_TOKEN
 RUN python3 -c "\
 from huggingface_hub import snapshot_download; \
-snapshot_download(repo_id='stabilityai/TripoSR', local_dir='/workspace/model_cache')"
+snapshot_download(repo_id='stabilityai/stable-fast-3d', local_dir='/workspace/model_cache', token='${HF_TOKEN}')"
 
 # --- Копируем наш handler --------------------------------------------------
 COPY handler.py /workspace/handler.py
