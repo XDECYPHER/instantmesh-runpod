@@ -1,16 +1,8 @@
+# Файл для справки/локального теста — сама сборка образа не использует
+# requirements.txt, зависимости ставятся напрямую в Dockerfile.
 runpod
+requests
 torch==2.1.2
 torchvision==0.16.2
-omegaconf==2.3.0
-Pillow==10.1.0
-einops==0.7.0
-transformers==4.35.0
-trimesh==4.0.5
-rembg
-huggingface-hub
-xatlas
-onnxruntime
-requests
-numpy<2
-# torchmcubes ставится отдельно, т.к. это git-пакет с CUDA-сборкой:
-# pip install git+https://github.com/tatsy/torchmcubes.git
+# Остальные зависимости SF3D ставятся из requirements.txt репозитория
+# Stability-AI/stable-fast-3d прямо внутри Dockerfile.
