@@ -23,8 +23,7 @@ WORKDIR /workspace
 # --- PyTorch (под CUDA 12.1, та же связка, что уже проверена у нас) ------
 RUN pip install --upgrade pip && \
     pip install -U setuptools==69.5.1 wheel && \
-    pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu121
-
+    pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
 # --- Клонируем официальный репозиторий Stable Fast 3D ---------------------
 RUN git clone --depth 1 https://github.com/Stability-AI/stable-fast-3d.git /workspace/stable-fast-3d
 
