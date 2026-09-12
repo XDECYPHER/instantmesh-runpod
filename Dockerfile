@@ -37,8 +37,11 @@ RUN grep -v -E '^\./' requirements.txt > requirements_main.txt \
     && pip install -r requirements_main.txt
 
 # --- texture_baker и uv_unwrapper: CUDA-расширения, собираем ПОСЛЕ torch,
-# --- обязательно с --no-build-isolation (иначе pip не видит torch) -------
-RUN pip install --no-build-isolation ./texture_baker/ ./uv_unwrapper/
+# --- обязательно с --no-build-isolation (иначе pip не видит torch).
+# --- USE_CUDA=1 обязателен: во время docker build нет реального GPU,
+# --- и torch.cuda.is_available() вернёт False, из-за чего setup.py
+# --- соберёт CPU-заглушку вместо настоящего CUDA-кернела.
+RUN USE_CUDA=1 pip install --no-build-isolation ./texture_baker/ ./uv_unwrapper/
 
 # --- Наши доп. зависимости под RunPod --------------------------------------
 RUN pip install runpod requests
